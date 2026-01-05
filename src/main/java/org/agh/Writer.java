@@ -1,26 +1,37 @@
 package org.agh;
 
 
-public class Writer extends Thread {
+import lombok.Getter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-    private Library library;
-    private int timeStamp;
+import static java.lang.Math.abs;
+@Getter
+public class Writer implements Runnable {
 
+    private static final Logger logger = LoggerFactory.getLogger(Writer.class);
+    private final Library library;
+    private final int timeStamp;
     public Writer(Library library, int sleepTime) {
         this.library = library;
-        timeStamp = sleepTime;
+        if (sleepTime > 3000) {
+            sleepTime = 3000;
+        }
+        timeStamp = abs(sleepTime);
     }
 
 
     @Override
     public void run() {
-        while (true) {
+        while (!Thread.currentThread().isInterrupted()) {
             try {
                 library.startWriting();
-                sleep(timeStamp);
+                Thread.sleep(timeStamp);
                 library.stopWriting();
-            } catch (InterruptedException e) {
-                System.out.println("Writer not allowed: " + Thread.currentThread().getName());
+            } catch (InterruptedException _) {
+                logger.error("ERROR");
+                Thread.currentThread().interrupt();
+                break;
             }
         }
     }
